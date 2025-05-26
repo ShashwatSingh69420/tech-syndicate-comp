@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="UTF-8">
+  <title>Syndicate Airways Portal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: black;
+      color: white; 
+    }
+    h1, h2 {
+      color: #a48cff;
+    }
+    nav a {
+      margin-right: 15px;
+      text-decoration: none;
+      color: #33ccff;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    section {
+      display: none;
+      margin-top: 20px;
+      background: #444;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+    section.active {
+      display: block;
+    }
+    input, select, button {
+      margin-top: 10px;
+      padding: 8px;
+      width: 100%;
+      max-width: 300px;
+    }
+    input, select {
+      background: #222;
+      color: white;
+      border: 1px solid #666;
+    }
+    button {
+      background: #0077cc;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    .message {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Syndicate Airways</h1>
+  <nav>
+    <a href="#" onclick="showSection('home')">Home</a>
+    <a href="#" onclick="showSection('register')">Register</a>
+    <a href="#" onclick="showSection('login')">User Login</a>
+    <a href="#" onclick="showSection('adminLogin')">Admin Login</a>
+  </nav>
+
+ 
+  <section id="home" class="active">
+    <h2>Welcome to Syndicate Airways</h2>
+    <p>HELLO Tech Syndicate Airways is a cutting-edge airline that blends technology and comfort to offer passengers a truly seamless travel experience. From easy online booking and smart check-ins to personalized in-flight services, the airline is built around innovation and customer satisfaction. Whether you're flying for business or leisure, Tech Syndicate ensures efficiency, safety, and luxury at every step of your journey. It's not just an airline—it's the future of air travel.</p>
+  </section>
+
+  <section id="register">
+    <h2>User Registration</h2>
+    <input id="regUsername" placeholder="Username"><br>
+    <input id="regEmail" type="email" placeholder="Email"><br>
+    <input id="regPassword" type="password" placeholder="Password"><br>
+    <button onclick="registerUser()">Register</button>
+    <p class="message" id="regMessage"></p>
+  </section>
+
+  <section id="login">
+    <h2>User Login</h2>
+    <input id="loginEmail" type="email" placeholder="Email"><br>
+    <input id="loginPassword" type="password" placeholder="Password"><br>
+    <button onclick="loginUser()">Login</button>
+    <p class="message" id="loginMessage"></p>
+  </section>
+
+  <section id="dashboard">
+    <h2>User Dashboard</h2>
+    <p>Welcome, <span id="userDisplay"></span>!</p>
+
+    <h3>Book a Flight</h3>
+    <input id="from" placeholder="From">
+    <input id="to" placeholder="To">
+    <input id="flightDate" type="date">
+    <select id="flightClass">
+      <option>Economy</option>
+      <option>Business</option>
+      <option>First Class</option>
+    </select>
+    <button onclick="bookFlight()">Book Flight</button>
+
+    <h3>Your Bookings</h3>
+    <ul id="bookingList"></ul>
+  </section>
+
+ 
+  <section id="adminLogin">
+    <h2>Admin Login</h2>
+    <input id="adminID" placeholder="Admin ID"><br>
+    <input id="adminPassword" type="password" placeholder="Password"><br>
+    <button onclick="adminLogin()">Login</button>
+    <p class="message" id="adminMessage"></p>
+  </section>
+
+
+  <section id="adminDashboard">
+    <h2>Admin Dashboard</h2>
+    <p>Manage flights and schedules:</p>
+    <ul>
+      <li>Edit Flight Timings</li>
+      <li>Change Aircraft Model</li>
+      <li>Manage Routes</li>
+      <li>Assign Pilots and Crew</li>
+    </ul>
+  </section>
+
+  <script>
+    function showSection(id) {
+      document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    }
+
+    function registerUser() {
+      const username = document.getElementById("regUsername").value.trim();
+      const email = document.getElementById("regEmail").value.trim();
+      const password = document.getElementById("regPassword").value.trim();
+      const msg = document.getElementById("regMessage");
+
+      if (!username || !email || !password) {
+        msg.textContent = "All fields are required.";
+        msg.style.color = "red";
+        return;
+      }
+
+      const user = { username, email, password, bookings: [] };
+      localStorage.setItem("user", JSON.stringify(user));
+      msg.textContent = "Registration successful! Please log in.";
+      msg.style.color = "lightgreen";
+      setTimeout(() => showSection('login'), 1500);
+    }
+
+    function loginUser() {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      const msg = document.getElementById("loginMessage");
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      if (user && user.email === email && user.password === password) {
+        document.getElementById("userDisplay").textContent = user.username;
+        showSection("dashboard");
+        loadBookings();
+      } else {
+        msg.textContent = "Invalid login credentials.";
+        msg.style.color = "red";
+      }
+    }
+
+    function bookFlight() {
+      const from = document.getElementById("from").value.trim();
+      const to = document.getElementById("to").value.trim();
+      const date = document.getElementById("flightDate").value;
+      const flightClass = document.getElementById("flightClass").value;
+
+      if (!from || !to || !date) {
+        alert("Please fill in all booking details.");
+        return;
+      }
+
+      const booking = { from, to, date, flightClass };
+      let user = JSON.parse(localStorage.getItem("user"));
+      user.bookings.push(booking);
+      localStorage.setItem("user", JSON.stringify(user));
+      loadBookings();
+    }
+
+    function loadBookings() {
+      const list = document.getElementById("bookingList");
+      list.innerHTML = "";
+      const user = JSON.parse(localStorage.getItem("user"));
+      user.bookings.forEach(b => {
+        const li = document.createElement("li");
+        li.textContent = `${b.date} | ${b.from} to ${b.to} (${b.flightClass})`;
+        list.appendChild(li);
+      });
+    }
+
+    function adminLogin() {
+      const id = document.getElementById("adminID").value.trim();
+      const password = document.getElementById("adminPassword").value.trim();
+      const msg = document.getElementById("adminMessage");
+
+      if (id === "admin" && password === "admin123") {
+        showSection("adminDashboard");
+      } else {
+        msg.textContent = "Invalid admin credentials.";
+        msg.style.color = "red";
+      }
+    }
+  </script>
+</body>
+</html>
